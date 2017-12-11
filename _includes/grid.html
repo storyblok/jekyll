@@ -1,0 +1,6 @@
+{{blok._editable}}
+<div class="grid">
+  {% for blok in blok.body %}
+    {% include {{blok.component}}.html blok=blok %}
+  {% endfor %}
+</div>
