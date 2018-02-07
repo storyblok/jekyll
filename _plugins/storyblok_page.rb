@@ -1,7 +1,6 @@
 require "storyblok"
 
 module Jekyll
-
   class StoryblokPage < Page
     def initialize(site, base, dir, story, links)
       @site = site
@@ -13,12 +12,16 @@ module Jekyll
       layout = story['content']['component']
 
       self.process(@name)
-      self.read_yaml(File.join(base, '_layouts'), layout + '.html')
+      # Jekyll provides the processed layouts in the site.layouts hash, so we
+      # will use it here!
+      # This makes it possible to use gem-based Jekyll themes.
+      self.data    = site.layouts[layout].data.dup
+      self.content = site.layouts[layout].content.dup
 
       # Assign the received data from the Storyblok API as variables
-      self.data['story']   = story
-      self.data['title']   = story['name']
-      self.data['links']   = links
+      self.data['story'] = story
+      self.data['title'] = story['name']
+      self.data['links'] = links
     end
   end
 
