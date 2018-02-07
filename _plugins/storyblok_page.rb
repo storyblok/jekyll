@@ -29,19 +29,31 @@ module Jekyll
     safe true
 
     def generate(site)
-      client = ::Storyblok::Client.new(token: 'qR6GM4L0j1w4h2fFZiZ28Qtt', version: 'draft')
-      res = client.stories
-      stories = res['data']['stories']
+      @storyblok_config = site.config['storyblok']
+      raise 'Missing Storyblok configuration in _config.yml' unless @storyblok_config
 
-      res_links = client.links
-      links = res_links['data']['links']
+      links = client.links['data']['links']
+      stories = client.stories['data']['stories']
 
       stories.each do |story|
-        site.pages << StoryblokPage.new(site, site.source, story['full_slug'], story, links)
+        create_page(site, story, links)
+      end
+    end
 
-        if story['full_slug'] == 'home'
-          site.pages << StoryblokPage.new(site, site.source, '', story, links)
-        end
+    private
+
+    def client
+      @client ||= ::Storyblok::Client.new(
+        token: @storyblok_config['token'],
+        version: @storyblok_config['version']
+      )
+    end
+
+    def create_page(site, story, links)
+      site.pages << StoryblokPage.new(site, site.source, story['full_slug'], story, links)
+
+      if story['full_slug'] == 'home'
+        site.pages << StoryblokPage.new(site, site.source, '', story, links)
       end
     end
   end
