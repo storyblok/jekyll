@@ -1,7 +1,6 @@
 require "storyblok"
 
 module Jekyll
-
   class StoryblokPage < Page
     def initialize(site, base, dir, story, links)
       @site = site
@@ -13,12 +12,16 @@ module Jekyll
       layout = story['content']['component']
 
       self.process(@name)
-      self.read_yaml(File.join(base, '_layouts'), layout + '.html')
+      # Jekyll provides the processed layouts in the site.layouts hash, so we
+      # will use it here!
+      # This makes it possible to use gem-based Jekyll themes.
+      self.data    = site.layouts[layout].data.dup
+      self.content = site.layouts[layout].content.dup
 
       # Assign the received data from the Storyblok API as variables
-      self.data['story']   = story
-      self.data['title']   = story['name']
-      self.data['links']   = links
+      self.data['story'] = story
+      self.data['title'] = story['name']
+      self.data['links'] = links
     end
   end
 
@@ -26,19 +29,31 @@ module Jekyll
     safe true
 
     def generate(site)
-      client = ::Storyblok::Client.new(token: 'qR6GM4L0j1w4h2fFZiZ28Qtt', version: 'draft')
-      res = client.stories
-      stories = res['data']['stories']
+      @storyblok_config = site.config['storyblok']
+      raise 'Missing Storyblok configuration in _config.yml' unless @storyblok_config
 
-      res_links = client.links
-      links = res_links['data']['links']
+      links = client.links['data']['links']
+      stories = client.stories['data']['stories']
 
       stories.each do |story|
-        site.pages << StoryblokPage.new(site, site.source, story['full_slug'], story, links)
+        create_page(site, story, links)
+      end
+    end
 
-        if story['full_slug'] == 'home'
-          site.pages << StoryblokPage.new(site, site.source, '', story, links)
-        end
+    private
+
+    def client
+      @client ||= ::Storyblok::Client.new(
+        token: @storyblok_config['token'],
+        version: @storyblok_config['version']
+      )
+    end
+
+    def create_page(site, story, links)
+      site.pages << StoryblokPage.new(site, site.source, story['full_slug'], story, links)
+
+      if story['full_slug'] == 'home'
+        site.pages << StoryblokPage.new(site, site.source, '', story, links)
       end
     end
   end

@@ -30,6 +30,12 @@ theme: minima
 plugins:
   - jekyll-feed
 
+# Settings for your Storyblok space
+storyblok:
+  token:   "qR6GM4L0j1w4h2fFZiZ28Qtt"
+  # Can be either `draft` or `published`
+  version: draft
+
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
