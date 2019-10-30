@@ -12,8 +12,7 @@ module Jekyll
       layout = story['content']['component']
 
       self.process(@name)
-      # Jekyll provides the processed layouts in the site.layouts hash, so we
-      # will use it here!
+      # Jekyll provides the processed layouts in the site.layouts hash, so we will use it here!
       # This makes it possible to use gem-based Jekyll themes.
       self.data    = site.layouts[layout].data.dup
       self.content = site.layouts[layout].content.dup
@@ -32,11 +31,11 @@ module Jekyll
       @storyblok_config = site.config['storyblok']
       raise 'Missing Storyblok configuration in _config.yml' unless @storyblok_config
 
-      links = client.links['data']['links']
+      link = client.links['data']['links']
       stories = client.stories['data']['stories']
 
       stories.each do |story|
-        create_page(site, story, links)
+        create_page(site, story, link)
       end
     end
 
@@ -44,16 +43,16 @@ module Jekyll
 
     def client
       @client ||= ::Storyblok::Client.new(
-        token: @storyblok_config['token'],
-        version: @storyblok_config['version']
-      )
+          token: @storyblok_config['token'],
+          version: @storyblok_config['version']
+        )
     end
 
-    def create_page(site, story, links)
-      site.pages << StoryblokPage.new(site, site.source, story['full_slug'], story, links)
+    def create_page(site, story, link)
+      site.pages << StoryblokPage.new(site, site.source, story['full_slug'], story, link)
 
       if story['full_slug'] == 'home'
-        site.pages << StoryblokPage.new(site, site.source, '', story, links)
+        site.pages << StoryblokPage.new(site, site.source, '', story, link)
       end
     end
   end
